@@ -57,11 +57,58 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.discount = discount
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
-        self.runValueIteration()
+
+        for _ in range(iterations):
+            self.runValueIteration()
 
     def runValueIteration(self):
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
+        next_values = util.Counter()
+        states = self.mdp.getStates()
+
+        # for s in states:
+        #     actions = self.mdp.getPossibleActions(s)
+        #     final_sum = 0
+        #     for a in actions:
+        #         ns_prob_pairs = self.mdp.getTransitionStatesAndProbs(s, a)
+        #         sum_r_ns = 0
+        #         for ns, prob in ns_prob_pairs:
+        #             print(r)
+        #             r = self.mdp.getReward(s, a, ns)
+        #             r_ns = (r + self.discount * self.getValue(ns)) * prob
+        #             sum_r_ns += r_ns
+        #         # multiply sum_r_ns by our policy probability
+        #         # final_sum += 1/(len(actions)) * sum_r_ns
+        #         if self.getPolicy(s) == a:
+        #             final_sum += 1 * sum_r_ns
+        #     next_values[s] = final_sum
+        #
+        # print(next_values)
+        # self.values = next_values
+
+
+        for s in states:
+            if self.mdp.isTerminal(s):
+                next_values[s] = 0
+                continue
+
+            actions = self.mdp.getPossibleActions(s)
+            final_sum = 0
+            a = self.getPolicy(s)
+            ns_prob_pairs = self.mdp.getTransitionStatesAndProbs(s, a)
+            sum_r_ns = 0
+            for ns, prob in ns_prob_pairs:
+                r = self.mdp.getReward(s, a, ns)
+                r_ns = (r + self.discount * self.getValue(ns)) * prob
+                sum_r_ns += r_ns
+
+            final_sum += 1 * sum_r_ns
+            next_values[s] = final_sum
+
+        print("next_values", next_values)
+        self.values = next_values
+
 
 
     def getValue(self, state):
@@ -77,7 +124,17 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # getTransitionStates and probs. This will return a list of (nextstate, prob) pairs.
+        # Do a weighted sum of Value(nextstate) * prob.
+        # return the
+        pairs = self.mdp.getTransitionStatesAndProbs(state, action)
+        # print(pairs)
+        sum = 0
+        for s, p in pairs:
+            # print(s, p, self.getValue(s) * p)
+            sum += self.getValue(s) * p
+        # print(sum)
+        return sum
 
     def computeActionFromValues(self, state):
         """
@@ -89,7 +146,34 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Look at the states above us
+
+        print(state)
+        # print(self.mdp.getStates())
+        print(self.mdp.getPossibleActions(state))
+        if (self.mdp.isTerminal(state)):
+            return None
+
+        actions = self.mdp.getPossibleActions(state)
+        max_action = actions[0]
+        max_action_value = self.computeQValueFromValues(state, actions[0])
+
+        for a in actions:
+            action_value = self.computeQValueFromValues(state, a)
+            ns_prob_pairs = self.mdp.getTransitionStatesAndProbs(state, a)
+            # print(ns_prob_pairs)
+            if ns_prob_pairs[0] == ('TERMINAL_STATE', 1.0):
+                print("Reward", self.mdp.getReward(state, a, 'TERMINAL_STATE'))
+                print("Term-val", self.getValue('TERMINAL_STATE'))
+                print('actual-vals:', self.values)
+
+            # print(action_value)
+            if action_value > max_action_value:
+                max_action = a
+                max_action_value = action_value
+
+        return max_action
+
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
