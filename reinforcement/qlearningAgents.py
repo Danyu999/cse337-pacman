@@ -41,6 +41,7 @@ class QLearningAgent(ReinforcementAgent):
     def __init__(self, **args):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
+
         "*** YOUR CODE HERE ***"
         Q = util.Counter() # key is a tuple (state, action)
 
@@ -88,7 +89,17 @@ class QLearningAgent(ReinforcementAgent):
         legalActions = self.getLegalActions(state)
         action = None
         "*** YOUR CODE HERE ***"
-
+        if not legalActions:
+          return None
+        if util.flipCoin(self.epsilon): #random
+          action = random.choice(legalActions)
+        else: #greedy
+          maxqval = 0
+          for a in legaActions:
+            qval = self.getQValue(state, a)
+            if qval > maxqval:
+              maxqval = qval
+              action = a
         return action
 
     def update(self, state, action, nextState, reward):
