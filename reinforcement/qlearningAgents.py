@@ -1,3 +1,5 @@
+# Students: Dan Yu, Evan Hruskar
+
 # qlearningAgents.py
 # ------------------
 # Licensing Information:  You are free to use or extend these projects for
@@ -189,14 +191,28 @@ class ApproximateQAgent(PacmanQAgent):
           where * is the dotProduct operator
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        features = self.featExtractor.getFeatures(state, action)
+        weights = self.getWeights()
+        sum = 0
+        for key in features: # NB: We must iterate over features instead of weights, weights is empty to start.
+            sum += weights[key] * features[key]
+        return sum
 
     def update(self, state, action, nextState, reward):
         """
            Should update your weights based on transition
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        features = self.featExtractor.getFeatures(state, action)
+        weights = self.getWeights()
+
+        difference = (reward + self.discount * self.computeValueFromQValues(nextState)) - self.getQValue(state, action)
+        for key in features: # NB: We must iterate over features instead of weights, weights is empty to start.
+            updated_weight = weights[key] + self.alpha * difference * features[key]
+            # print(weights[key], updated_weight)
+            weights[key] = updated_weight
+
+
 
     def final(self, state):
         "Called at the end of each game."
